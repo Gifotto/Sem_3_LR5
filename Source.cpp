@@ -1,12 +1,17 @@
 ﻿#include <SFML/Graphics.hpp>
 #include <iostream>
+#include <map>
+
 #include "Cave.h"
 #include "CaveRenderer.h"
+#include "Commands.h"
+
 
 using namespace std;
 
 int main() {
     int width, height, birth, death, chance;
+
 
     cout << "Width: ";  cin >> width;
     cout << "Height: "; cin >> height;
@@ -28,11 +33,11 @@ int main() {
         sf::VideoMode(width * cellSize, height * cellSize), 
         "Cave Generator");
 
-    bool step = true; // флаг выполнения шага
-
-    // таймер
-    //sf::Clock clock;
-    //sf::Time stepDelay = sf::milliseconds(200); // скорость симуляции
+    StepCommand stepCommand(cave);
+    ResetCommand resetCommand(cave);
+    map<sf::Keyboard::Key, Command*> commands;
+    commands[sf::Keyboard::Space] = &stepCommand;
+    commands[sf::Keyboard::R] = &resetCommand;
 
     while (window.isOpen()) {
         sf::Event event;
@@ -41,25 +46,13 @@ int main() {
             if (event.type == sf::Event::Closed)
                 window.close();
 
-            
-            // шаг по нажатию SPACE
-            if (event.type == sf::Event::KeyPressed &&
-                event.key.code == sf::Keyboard::Space)
-                step = true;
-                
-        }
-        /*
-        // автоматический шаг симуляции
-        if (clock.getElapsedTime() >= stepDelay) {
-            cave.doSimulationStep();
-            clock.restart();
-        }
-        */
-        
-        // выполняем шаг симуляции
-        if (step) {
-            cave.doSimulationStep();
-            step = false;
+
+            if (event.type == sf::Event::KeyPressed) {
+                auto it = commands.find(event.key.code);
+                if (it != commands.end()) {
+                    it->second->execute();
+                }
+            }
         }
         
 
